@@ -274,7 +274,6 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
                 ],
               ),
               const SizedBox(width: 16),
-          
               // Export Section
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

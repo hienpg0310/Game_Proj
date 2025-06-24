@@ -89,10 +89,10 @@ class ColorPalette extends StatelessWidget {
                 onTap: () {
                   showColorWheel(context, selectedColorListenable);
                 },
-                child: SvgPicture.asset(
-                  'assets/svgs/color_wheel.svg',
-                  height: 30,
-                  width: 30,
+                child: Image.asset(
+                  'assets/color-wheel.png',
+                  height: 40,
+                  width: 40,
                 ),
               ),
             ),
@@ -123,7 +123,6 @@ class ColorPalette extends StatelessWidget {
         ),
         const SizedBox(width: 6),
 
-        // Essential colors in a scrollable row
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -168,16 +167,7 @@ class ColorPalette extends StatelessWidget {
             onTap: () {
               showColorWheel(context, selectedColorListenable);
             },
-            child: Container(
-              height: 20,
-              width: 20,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                border: Border.all(color: Colors.grey.shade400, width: 1),
-                borderRadius: const BorderRadius.all(Radius.circular(3)),
-              ),
-              child: Icon(Icons.palette, size: 12, color: Colors.grey.shade700),
-            ),
+            child: Image.asset('assets/color-wheel.png', height: 25, width: 25),
           ),
         ),
       ],

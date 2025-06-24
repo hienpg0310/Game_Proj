@@ -299,8 +299,8 @@ class _DrawingCanvasPainter extends CustomPainter {
   void _drawGrid(Size size, Canvas canvas) {
     const gridStrokeWidth = 1.0;
     const gridSpacing = 50.0;
-    const subGridSpacing = 10.0; // Spacing for smaller boxes
-    const subGridStrokeWidth = 0.5; // Lighter stroke for smaller boxes
+    const subGridSpacing = 10.0;
+    const subGridStrokeWidth = 0.5;
 
     final gridPaint =
         Paint()
@@ -311,7 +311,7 @@ class _DrawingCanvasPainter extends CustomPainter {
         Paint()
           ..color =
               Colors
-                  .grey // Lighter color for the smaller grid
+                  .grey 
           ..strokeWidth = subGridStrokeWidth;
 
     // Horizontal lines for main grid
