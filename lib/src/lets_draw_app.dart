@@ -7,10 +7,12 @@ class LetsDrawApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "Let/'s Draw",
-      theme: lightTheme,
-      home: const DrawingPage(),
+    return SafeArea(
+      child: MaterialApp(
+        title: "Let/'s Draw",
+        theme: lightTheme,
+        home: const DrawingPage(),
+      ),
     );
   }
 }
