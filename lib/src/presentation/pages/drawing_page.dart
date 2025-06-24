@@ -45,13 +45,16 @@ class _DrawingPageState extends State<DrawingPage>
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Scaffold(
       backgroundColor: kCanvasColor,
       body: HotkeyListener(
         onRedo: undoRedoStack.redo,
         onUndo: undoRedoStack.undo,
         child: Padding(
-          padding: EdgeInsets.only(top: 40),
+          padding: EdgeInsets.only(top: isLandscape ? 10 : 40),
           child: Stack(
             children: [
               AnimatedBuilder(
@@ -85,13 +88,22 @@ class _DrawingPageState extends State<DrawingPage>
                   );
                 },
               ),
+              _CustomAppBar(animationController: animationController),
               Positioned(
-                top: kToolbarHeight + 10,
+                bottom: isLandscape ? 0 : null,
+                top: isLandscape ? null : kToolbarHeight,
+                left: 0,
+                right: isLandscape ? 0 : null,
                 child: SlideTransition(
                   position: Tween<Offset>(
-                    begin: const Offset(-1, 0),
+                    begin: isLandscape ? const Offset(0, 1) : const Offset(-1, 0),
                     end: Offset.zero,
-                  ).animate(animationController),
+                  ).animate(
+                    CurvedAnimation(
+                      parent: animationController,
+                      curve: Curves.easeOutCubic,
+                    ),
+                  ),
                   child: CanvasSideBar(
                     drawingTool: drawingTool,
                     selectedColor: selectedColor,
@@ -105,10 +117,10 @@ class _DrawingPageState extends State<DrawingPage>
                     backgroundImage: backgroundImage,
                     undoRedoStack: undoRedoStack,
                     showGrid: showGrid,
+                    onClose: () => animationController.reverse(),
                   ),
                 ),
               ),
-              _CustomAppBar(animationController: animationController),
             ],
           ),
         ),
@@ -133,19 +145,19 @@ class _CustomAppBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton(
-              onPressed: () {
+            GestureDetector(
+              onTap: () {
                 if (animationController.value == 0) {
                   animationController.forward();
                 } else {
                   animationController.reverse();
                 }
               },
-              icon: const Icon(Icons.menu),
-            ),
-            const Text(
-              'Let\'s Draw',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
+              child: Image.asset(
+                "assets/bar_left_icon.png",
+                width: 32,
+                height: 32,
+              ),
             ),
             const SizedBox.shrink(),
           ],

@@ -29,6 +29,7 @@ class CanvasSideBar extends StatefulWidget {
   final ValueNotifier<ui.Image?> backgroundImage;
   final UndoRedoStack undoRedoStack;
   final ValueNotifier<bool> showGrid;
+  final VoidCallback? onClose;
 
   const CanvasSideBar({
     Key? key,
@@ -44,6 +45,7 @@ class CanvasSideBar extends StatefulWidget {
     required this.backgroundImage,
     required this.undoRedoStack,
     required this.showGrid,
+    this.onClose,
   }) : super(key: key);
 
   @override
@@ -57,17 +59,25 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Container(
-      width: 300,
-      height: MediaQuery.of(context).size.height < 680 ? 450 : 650,
+      width: isLandscape ? screenWidth : 300,
+      height: isLandscape ? 200 : (screenHeight < 680 ? 450 : 630),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+        borderRadius:
+            isLandscape
+                ? const BorderRadius.vertical(top: Radius.circular(10))
+                : const BorderRadius.horizontal(right: Radius.circular(10)),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.shade200,
             blurRadius: 3,
-            offset: const Offset(3, 3),
+            offset: isLandscape ? const Offset(0, -3) : const Offset(3, 3),
           ),
         ],
       ),
@@ -87,248 +97,388 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
             controller: scrollController,
             thumbVisibility: true,
             trackVisibility: true,
-            child: ListView(
-              padding: const EdgeInsets.all(10.0),
-              controller: scrollController,
-              children: [
-                const SizedBox(height: 10),
-                const Text(
-                  'Shapes',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Divider(),
-                Wrap(
-                  alignment: WrapAlignment.start,
-                  spacing: 5,
-                  runSpacing: 5,
-                  children: [
-                    _IconBox(
-                      iconData: FontAwesomeIcons.pencil,
-                      selected: widget.drawingTool.value == DrawingTool.pencil,
-                      onTap: () =>
-                          widget.drawingTool.value = DrawingTool.pencil,
-                      tooltip: 'Pencil',
-                    ),
-                    _IconBox(
-                      selected: widget.drawingTool.value == DrawingTool.line,
-                      onTap: () => widget.drawingTool.value = DrawingTool.line,
-                      tooltip: 'Line',
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 22,
-                            height: 2,
-                            color: widget.drawingTool.value == DrawingTool.line
-                                ? Colors.grey[900]
-                                : Colors.grey,
-                          ),
-                        ],
-                      ),
-                    ),
-                    // _IconBox(
-                    //   iconData: Icons.hexagon_outlined,
-                    //   selected: widget.drawingTool.value == DrawingTool.polygon,
-                    //   onTap: () =>
-                    //       widget.drawingTool.value = DrawingTool.polygon,
-                    //   tooltip: 'Polygon',
-                    // ),
-                    _IconBox(
-                      iconData: FontAwesomeIcons.eraser,
-                      selected: widget.drawingTool.value == DrawingTool.eraser,
-                      onTap: () =>
-                          widget.drawingTool.value = DrawingTool.eraser,
-                      tooltip: 'Eraser',
-                    ),
-                    // _IconBox(
-                    //   iconData: FontAwesomeIcons.square,
-                    //   selected: widget.drawingTool.value == DrawingTool.square,
-                    //   onTap: () =>
-                    //       widget.drawingTool.value = DrawingTool.square,
-                    //   tooltip: 'Square',
-                    // ),
-                    // _IconBox(
-                    //   iconData: FontAwesomeIcons.circle,
-                    //   selected: widget.drawingTool.value == DrawingTool.circle,
-                    //   onTap: () =>
-                    //       widget.drawingTool.value = DrawingTool.circle,
-                    //   tooltip: 'Circle',
-                    // ),
-                    // _IconBox(
-                    //   iconData: FontAwesomeIcons.ruler,
-                    //   selected: widget.showGrid.value,
-                    //   onTap: () =>
-                    //       widget.showGrid.value = !widget.showGrid.value,
-                    //   tooltip: 'Guide Lines',
-                    // ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Text(
-                      'Fill Shape: ',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    Checkbox(
-                      value: widget.filled.value,
-                      onChanged: (val) {
-                        widget.filled.value = val ?? false;
-                      },
-                    ),
-                  ],
-                ),
-
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 150),
-                  child: widget.drawingTool.value == DrawingTool.polygon
-                      ? Row(
-                          children: [
-                            const Text(
-                              'Polygon Sides: ',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                            Slider(
-                              value: widget.polygonSides.value.toDouble(),
-                              min: 3,
-                              max: 8,
-                              onChanged: (val) {
-                                widget.polygonSides.value = val.toInt();
-                              },
-                              label: '${widget.polygonSides.value}',
-                              divisions: 5,
-                            ),
-                          ],
-                        )
-                      : const SizedBox.shrink(),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Colors',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Divider(),
-                ColorPalette(
-                  selectedColorListenable: widget.selectedColor,
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Size',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Divider(),
-                Row(
-                  children: [
-                    const Text(
-                      'Stroke Size: ',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    Slider(
-                      value: widget.strokeSize.value,
-                      min: 0,
-                      max: 50,
-                      onChanged: (val) {
-                        widget.strokeSize.value = val;
-                      },
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Text(
-                      'Eraser Size: ',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    Slider(
-                      value: widget.eraserSize.value,
-                      min: 0,
-                      max: 80,
-                      onChanged: (val) {
-                        widget.eraserSize.value = val;
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Actions',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Divider(),
-                Wrap(
-                  children: [
-                    TextButton(
-                      onPressed: widget.allSketches.value.isNotEmpty
-                          ? () => undoRedoStack.undo()
-                          : null,
-                      child: const Text('Undo'),
-                    ),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: undoRedoStack.canRedo,
-                      builder: (_, canRedo, __) {
-                        return TextButton(
-                          onPressed:
-                              canRedo ? () => undoRedoStack.redo() : null,
-                          child: const Text('Redo'),
-                        );
-                      },
-                    ),
-                    TextButton(
-                      child: const Text('Clear'),
-                      onPressed: () => undoRedoStack.clear(),
-                    ),
-                    // TextButton(
-                    //   onPressed: () async {
-                    //     if (widget.backgroundImage.value != null) {
-                    //       widget.backgroundImage.value = null;
-                    //     } else {
-                    //       widget.backgroundImage.value = await _getImage;
-                    //     }
-                    //   },
-                    //   child: Text(
-                    //     widget.backgroundImage.value == null
-                    //         ? 'Add Background'
-                    //         : 'Remove Background',
-                    //   ),
-                    // ),
-                  
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Export',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Divider(),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 140,
-                      child: TextButton(
-                        child: const Text('Export PNG'),
-                        onPressed: () async {
-                          Uint8List? pngBytes = await getBytes();
-                          if (pngBytes != null) saveFile(pngBytes, 'png');
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: 140,
-                      child: TextButton(
-                        child: const Text('Export JPEG'),
-                        onPressed: () async {
-                          Uint8List? pngBytes = await getBytes();
-                          if (pngBytes != null) saveFile(pngBytes, 'jpeg');
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            child:
+                isLandscape ? _buildHorizontalLayout() : _buildVerticalLayout(),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildVerticalLayout() {
+    return ListView(
+      padding: const EdgeInsets.all(10.0),
+      controller: scrollController,
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: widget.onClose,
+          ),
+        ),
+        const Text('Shapes', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Divider(),
+        _buildShapeTools(),
+        const SizedBox(height: 8),
+        _buildPolygonSlider(),
+        const SizedBox(height: 10),
+        const Text('Colors', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Divider(),
+        ColorPalette(selectedColorListenable: widget.selectedColor),
+        const SizedBox(height: 20),
+        const Text('Size', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Divider(),
+        _buildSizeSliders(),
+        const SizedBox(height: 20),
+        const Text('Actions', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Divider(),
+        _buildActionButtons(),
+        const SizedBox(height: 20),
+        const Text('Export', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Divider(),
+        _buildExportButtons(),
+      ],
+    );
+  }
+
+  Widget _buildHorizontalLayout() {
+    return SingleChildScrollView(
+      controller: scrollController,
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+      child: Stack(
+        children: [Padding(
+          padding: const EdgeInsets.only(top: 50.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Shapes',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  _buildShapeTools(),
+                ],
+              ),
+              const SizedBox(width: 16),
+          
+              // Colors Section (Compact)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Colors',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: 200,
+                    height: 60,
+                    child: ColorPalette(
+                      selectedColorListenable: widget.selectedColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+          
+              // Size Controls (Compact)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Size',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: 150,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            const Text('Stroke:', style: TextStyle(fontSize: 10)),
+                            Expanded(
+                              child: Slider(
+                                value: widget.strokeSize.value,
+                                min: 0,
+                                max: 50,
+                                onChanged: (val) {
+                                  widget.strokeSize.value = val;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Text('Eraser:', style: TextStyle(fontSize: 10)),
+                            Expanded(
+                              child: Slider(
+                                value: widget.eraserSize.value,
+                                min: 0,
+                                max: 80,
+                                onChanged: (val) {
+                                  widget.eraserSize.value = val;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+          
+              // Actions Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Actions',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      _buildCompactButton(
+                        'Undo',
+                        widget.allSketches.value.isNotEmpty
+                            ? () => undoRedoStack.undo()
+                            : null,
+                      ),
+                      const SizedBox(width: 4),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: undoRedoStack.canRedo,
+                        builder: (_, canRedo, __) {
+                          return _buildCompactButton(
+                            'Redo',
+                            canRedo ? () => undoRedoStack.redo() : null,
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 4),
+                      _buildCompactButton('Clear', () => undoRedoStack.clear()),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+          
+              // Export Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Export',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      _buildCompactButton('PNG', () async {
+                        Uint8List? pngBytes = await getBytes();
+                        if (pngBytes != null) saveFile(pngBytes, 'png');
+                      }),
+                      const SizedBox(width: 4),
+                      _buildCompactButton('JPEG', () async {
+                        Uint8List? pngBytes = await getBytes();
+                        if (pngBytes != null) saveFile(pngBytes, 'jpeg');
+                      }),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: widget.onClose,
+            ),
+          ),
+        ]
+      ),
+    );
+  }
+
+  Widget _buildCompactButton(String text, VoidCallback? onPressed) {
+    return SizedBox(
+      height: 32,
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Text(text, style: const TextStyle(fontSize: 11)),
+      ),
+    );
+  }
+
+  Widget _buildShapeTools() {
+    return Wrap(
+      alignment: WrapAlignment.start,
+      spacing: 5,
+      runSpacing: 5,
+      children: [
+        _IconBox(
+          iconData: FontAwesomeIcons.pencil,
+          selected: widget.drawingTool.value == DrawingTool.pencil,
+          onTap: () => widget.drawingTool.value = DrawingTool.pencil,
+          tooltip: 'Pencil',
+        ),
+        _IconBox(
+          selected: widget.drawingTool.value == DrawingTool.line,
+          onTap: () => widget.drawingTool.value = DrawingTool.line,
+          tooltip: 'Line',
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 22,
+                height: 2,
+                color:
+                    widget.drawingTool.value == DrawingTool.line
+                        ? Colors.grey[900]
+                        : Colors.grey,
+              ),
+            ],
+          ),
+        ),
+        _IconBox(
+          iconData: FontAwesomeIcons.eraser,
+          selected: widget.drawingTool.value == DrawingTool.eraser,
+          onTap: () => widget.drawingTool.value = DrawingTool.eraser,
+          tooltip: 'Eraser',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPolygonSlider() {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 150),
+      child:
+          widget.drawingTool.value == DrawingTool.polygon
+              ? Row(
+                children: [
+                  const Text('Polygon Sides: ', style: TextStyle(fontSize: 12)),
+                  Slider(
+                    value: widget.polygonSides.value.toDouble(),
+                    min: 3,
+                    max: 8,
+                    onChanged: (val) {
+                      widget.polygonSides.value = val.toInt();
+                    },
+                    label: '${widget.polygonSides.value}',
+                    divisions: 5,
+                  ),
+                ],
+              )
+              : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildSizeSliders() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            const Text('Stroke Size: ', style: TextStyle(fontSize: 12)),
+            Slider(
+              value: widget.strokeSize.value,
+              min: 0,
+              max: 50,
+              onChanged: (val) {
+                widget.strokeSize.value = val;
+              },
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            const Text('Eraser Size: ', style: TextStyle(fontSize: 12)),
+            Slider(
+              value: widget.eraserSize.value,
+              min: 0,
+              max: 80,
+              onChanged: (val) {
+                widget.eraserSize.value = val;
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Wrap(
+      children: [
+        TextButton(
+          onPressed:
+              widget.allSketches.value.isNotEmpty
+                  ? () => undoRedoStack.undo()
+                  : null,
+          child: const Text('Undo'),
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: undoRedoStack.canRedo,
+          builder: (_, canRedo, __) {
+            return TextButton(
+              onPressed: canRedo ? () => undoRedoStack.redo() : null,
+              child: const Text('Redo'),
+            );
+          },
+        ),
+        TextButton(
+          child: const Text('Clear'),
+          onPressed: () => undoRedoStack.clear(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExportButtons() {
+    return Row(
+      children: [
+        SizedBox(
+          width: 140,
+          child: TextButton(
+            child: const Text('Export PNG'),
+            onPressed: () async {
+              Uint8List? pngBytes = await getBytes();
+              if (pngBytes != null) saveFile(pngBytes, 'png');
+            },
+          ),
+        ),
+        SizedBox(
+          width: 140,
+          child: TextButton(
+            child: const Text('Export JPEG'),
+            onPressed: () async {
+              Uint8List? pngBytes = await getBytes();
+              if (pngBytes != null) saveFile(pngBytes, 'jpeg');
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -359,9 +509,10 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
       );
       if (file != null) {
         final filePath = file.files.single.path;
-        final bytes = filePath == null
-            ? file.files.first.bytes
-            : File(filePath).readAsBytesSync();
+        final bytes =
+            filePath == null
+                ? file.files.first.bytes
+                : File(filePath).readAsBytesSync();
         if (bytes != null) {
           completer.complete(decodeImageFromList(bytes));
         } else {
@@ -372,9 +523,7 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
       final image = await ImagePicker().pickImage(source: ImageSource.gallery);
       if (image != null) {
         final bytes = await image.readAsBytes();
-        completer.complete(
-          decodeImageFromList(bytes),
-        );
+        completer.complete(decodeImageFromList(bytes));
       } else {
         completer.completeError('No image selected');
       }
@@ -383,22 +532,10 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
     return completer.future;
   }
 
-  Future<void> _launchUrl(String url) async {
-    if (kIsWeb) {
-      html.window.open(
-        url,
-        url,
-      );
-    } else {
-      if (!await launchUrl(Uri.parse(url))) {
-        throw 'Could not launch $url';
-      }
-    }
-  }
-
   Future<Uint8List?> getBytes() async {
-    RenderRepaintBoundary boundary = widget.canvasGlobalKey.currentContext
-        ?.findRenderObject() as RenderRepaintBoundary;
+    RenderRepaintBoundary boundary =
+        widget.canvasGlobalKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary;
     ui.Image image = await boundary.toImage();
     ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     Uint8List? pngBytes = byteData?.buffer.asUint8List();

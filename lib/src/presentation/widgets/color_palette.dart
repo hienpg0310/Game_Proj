@@ -5,87 +5,182 @@ import 'package:flutter_svg/svg.dart';
 class ColorPalette extends StatelessWidget {
   final ValueNotifier<Color> selectedColorListenable;
 
-  const ColorPalette({
-    Key? key,
-    required this.selectedColorListenable,
-  }) : super(key: key);
+  const ColorPalette({Key? key, required this.selectedColorListenable})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    List<Color> colors = [
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    List<Color> colors = [Colors.black, Colors.white, ...Colors.primaries];
+
+    // For landscape, show all colors but in a more compact way
+    List<Color> landscapeColors = [
       Colors.black,
       Colors.white,
       ...Colors.primaries,
     ];
+
     return ValueListenableBuilder(
       valueListenable: selectedColorListenable,
       builder: (context, selectedColor, child) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
+        return isLandscape
+            ? _buildLandscapeLayout(context, selectedColor, landscapeColors)
+            : _buildPortraitLayout(context, selectedColor, colors);
+      },
+    );
+  }
+
+  Widget _buildPortraitLayout(
+    BuildContext context,
+    Color selectedColor,
+    List<Color> colors,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 2,
+          runSpacing: 2,
           children: [
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 2,
-              runSpacing: 2,
+            for (Color color in colors)
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () => selectedColorListenable.value = color,
+                  child: Container(
+                    height: 25,
+                    width: 25,
+                    decoration: BoxDecoration(
+                      color: color,
+                      border: Border.all(
+                        color:
+                            selectedColor == color ? Colors.blue : Colors.grey,
+                        width: 1.5,
+                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(5)),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: 30,
+              width: 30,
+              decoration: BoxDecoration(
+                color: selectedColor,
+                border: Border.all(color: Colors.blue, width: 1.5),
+                borderRadius: const BorderRadius.all(Radius.circular(5)),
+              ),
+            ),
+            const SizedBox(width: 10),
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () {
+                  showColorWheel(context, selectedColorListenable);
+                },
+                child: SvgPicture.asset(
+                  'assets/svgs/color_wheel.svg',
+                  height: 30,
+                  width: 30,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLandscapeLayout(
+    BuildContext context,
+    Color selectedColor,
+    List<Color> colors,
+  ) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Current color indicator
+        Container(
+          height: 20,
+          width: 20,
+          decoration: BoxDecoration(
+            color: selectedColor,
+            border: Border.all(color: Colors.blue, width: 1.2),
+            borderRadius: const BorderRadius.all(Radius.circular(4)),
+          ),
+        ),
+        const SizedBox(width: 6),
+
+        // Essential colors in a scrollable row
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               children: [
-                for (Color color in colors)
+                for (int i = 0; i < colors.length; i++) ...[
                   MouseRegion(
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
-                      onTap: () => selectedColorListenable.value = color,
+                      onTap: () => selectedColorListenable.value = colors[i],
                       child: Container(
-                        height: 25,
-                        width: 25,
+                        height: 16,
+                        width: 16,
                         decoration: BoxDecoration(
-                          color: color,
+                          color: colors[i],
                           border: Border.all(
-                            color: selectedColor == color
-                                ? Colors.blue
-                                : Colors.grey,
-                            width: 1.5,
+                            color:
+                                selectedColor == colors[i]
+                                    ? Colors.blue
+                                    : Colors.grey.shade400,
+                            width: 1.0,
                           ),
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(5)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(2),
+                          ),
                         ),
                       ),
                     ),
                   ),
+                  if (i < colors.length - 1) const SizedBox(width: 2),
+                ],
               ],
             ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 30,
-                  width: 30,
-                  decoration: BoxDecoration(
-                    color: selectedColor,
-                    border: Border.all(color: Colors.blue, width: 1.5),
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      showColorWheel(context, selectedColorListenable);
-                    },
-                    child: SvgPicture.asset(
-                      'assets/svgs/color_wheel.svg',
-                      height: 30,
-                      width: 30,
-                    ),
-                  ),
-                ),
-              ],
+          ),
+        ),
+        const SizedBox(width: 6),
+
+        // Color wheel button
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () {
+              showColorWheel(context, selectedColorListenable);
+            },
+            child: Container(
+              height: 20,
+              width: 20,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                border: Border.all(color: Colors.grey.shade400, width: 1),
+                borderRadius: const BorderRadius.all(Radius.circular(3)),
+              ),
+              child: Icon(Icons.palette, size: 12, color: Colors.grey.shade700),
             ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 
@@ -94,13 +189,14 @@ class ColorPalette extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Pick a color!'),
+          title: const Text('Pick a color!', ),
           content: SingleChildScrollView(
             child: ColorPicker(
               pickerColor: color.value,
               onColorChanged: (value) {
                 color.value = value;
               },
+              colorPickerWidth: MediaQuery.of(context).orientation == Orientation.landscape ? 200 : 300,
             ),
           ),
           actions: <Widget>[

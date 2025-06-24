@@ -47,9 +47,10 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
     if (box == null) return;
     final offset = box.globalToLocal(event.position);
 
-
     // GIỚI HẠN VÙNG VẼ: VD dưới AppBar và bên phải Sidebar
-    if (offset.dy < kToolbarHeight || offset.dx < 80) return;
+    if (offset.dy < 30 &&
+        MediaQuery.of(context).orientation == Orientation.portrait)
+      return;
 
     final standardOffset = offset.scaleToStandard(box.size);
     _currentStroke.startStroke(
@@ -72,7 +73,9 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
     // can be scaled back to the device size
 
     // GIỚI HẠN VÙNG VẼ
-    if (offset.dy < kToolbarHeight || offset.dx < 80) return;
+    if (offset.dy < 30 &&
+        MediaQuery.of(context).orientation == Orientation.portrait)
+      return;
     final standardOffset = offset.scaleToStandard(box.size);
     _currentStroke.addPoint(standardOffset);
     widget.onDrawingStrokeChanged?.call(_currentStroke.value);
@@ -109,7 +112,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
                 ),
               ),
             ),
-    
+
             // Draw the current stroke on top of the rest of the strokes.
             Positioned.fill(
               child: RepaintBoundary(
@@ -145,15 +148,13 @@ class _DrawingCanvasPainter extends CustomPainter {
     this.showGridListenable,
     this.backgroundImageListenable,
   }) : super(
-          repaint: Listenable.merge(
-            [
-              strokesListenable,
-              strokeListenable,
-              showGridListenable,
-              backgroundImageListenable,
-            ],
-          ),
-        );
+         repaint: Listenable.merge([
+           strokesListenable,
+           strokeListenable,
+           showGridListenable,
+           backgroundImageListenable,
+         ]),
+       );
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -186,12 +187,13 @@ class _DrawingCanvasPainter extends CustomPainter {
       if (points.isEmpty) continue;
 
       final strokeSize = max(stroke.size, 1.0);
-      final paint = Paint()
-        ..color = stroke.color.withOpacity(stroke.opacity)
-        ..strokeWidth = strokeSize
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..style = PaintingStyle.stroke;
+      final paint =
+          Paint()
+            ..color = stroke.color.withOpacity(stroke.opacity)
+            ..strokeWidth = strokeSize
+            ..strokeCap = StrokeCap.round
+            ..strokeJoin = StrokeJoin.round
+            ..style = PaintingStyle.stroke;
 
       // Pencil stroke
       if (stroke is NormalStroke) {
@@ -300,13 +302,17 @@ class _DrawingCanvasPainter extends CustomPainter {
     const subGridSpacing = 10.0; // Spacing for smaller boxes
     const subGridStrokeWidth = 0.5; // Lighter stroke for smaller boxes
 
-    final gridPaint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = gridStrokeWidth;
+    final gridPaint =
+        Paint()
+          ..color = Colors.black
+          ..strokeWidth = gridStrokeWidth;
 
-    final subGridPaint = Paint()
-      ..color = Colors.grey // Lighter color for the smaller grid
-      ..strokeWidth = subGridStrokeWidth;
+    final subGridPaint =
+        Paint()
+          ..color =
+              Colors
+                  .grey // Lighter color for the smaller grid
+          ..strokeWidth = subGridStrokeWidth;
 
     // Horizontal lines for main grid
     for (double y = 0; y <= size.height; y += gridSpacing) {
@@ -320,9 +326,11 @@ class _DrawingCanvasPainter extends CustomPainter {
 
     // Draw smaller boxes within each grid cell
     for (double y = 0; y <= size.height; y += gridSpacing) {
-      for (double subY = y;
-          subY < y + gridSpacing && subY <= size.height;
-          subY += subGridSpacing) {
+      for (
+        double subY = y;
+        subY < y + gridSpacing && subY <= size.height;
+        subY += subGridSpacing
+      ) {
         canvas.drawLine(
           Offset(0, subY),
           Offset(size.width, subY),
@@ -332,9 +340,11 @@ class _DrawingCanvasPainter extends CustomPainter {
     }
 
     for (double x = 0; x <= size.width; x += gridSpacing) {
-      for (double subX = x;
-          subX < x + gridSpacing && subX <= size.width;
-          subX += subGridSpacing) {
+      for (
+        double subX = x;
+        subX < x + gridSpacing && subX <= size.width;
+        subX += subGridSpacing
+      ) {
         canvas.drawLine(
           Offset(subX, 0),
           Offset(subX, size.height),
