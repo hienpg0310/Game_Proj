@@ -59,7 +59,7 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
   Widget build(BuildContext context) {
     return Container(
       width: 300,
-      height: MediaQuery.of(context).size.height < 680 ? 450 : 610,
+      height: MediaQuery.of(context).size.height < 680 ? 450 : 650,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
@@ -126,13 +126,13 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
                         ],
                       ),
                     ),
-                    _IconBox(
-                      iconData: Icons.hexagon_outlined,
-                      selected: widget.drawingTool.value == DrawingTool.polygon,
-                      onTap: () =>
-                          widget.drawingTool.value = DrawingTool.polygon,
-                      tooltip: 'Polygon',
-                    ),
+                    // _IconBox(
+                    //   iconData: Icons.hexagon_outlined,
+                    //   selected: widget.drawingTool.value == DrawingTool.polygon,
+                    //   onTap: () =>
+                    //       widget.drawingTool.value = DrawingTool.polygon,
+                    //   tooltip: 'Polygon',
+                    // ),
                     _IconBox(
                       iconData: FontAwesomeIcons.eraser,
                       selected: widget.drawingTool.value == DrawingTool.eraser,
@@ -140,27 +140,27 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
                           widget.drawingTool.value = DrawingTool.eraser,
                       tooltip: 'Eraser',
                     ),
-                    _IconBox(
-                      iconData: FontAwesomeIcons.square,
-                      selected: widget.drawingTool.value == DrawingTool.square,
-                      onTap: () =>
-                          widget.drawingTool.value = DrawingTool.square,
-                      tooltip: 'Square',
-                    ),
-                    _IconBox(
-                      iconData: FontAwesomeIcons.circle,
-                      selected: widget.drawingTool.value == DrawingTool.circle,
-                      onTap: () =>
-                          widget.drawingTool.value = DrawingTool.circle,
-                      tooltip: 'Circle',
-                    ),
-                    _IconBox(
-                      iconData: FontAwesomeIcons.ruler,
-                      selected: widget.showGrid.value,
-                      onTap: () =>
-                          widget.showGrid.value = !widget.showGrid.value,
-                      tooltip: 'Guide Lines',
-                    ),
+                    // _IconBox(
+                    //   iconData: FontAwesomeIcons.square,
+                    //   selected: widget.drawingTool.value == DrawingTool.square,
+                    //   onTap: () =>
+                    //       widget.drawingTool.value = DrawingTool.square,
+                    //   tooltip: 'Square',
+                    // ),
+                    // _IconBox(
+                    //   iconData: FontAwesomeIcons.circle,
+                    //   selected: widget.drawingTool.value == DrawingTool.circle,
+                    //   onTap: () =>
+                    //       widget.drawingTool.value = DrawingTool.circle,
+                    //   tooltip: 'Circle',
+                    // ),
+                    // _IconBox(
+                    //   iconData: FontAwesomeIcons.ruler,
+                    //   selected: widget.showGrid.value,
+                    //   onTap: () =>
+                    //       widget.showGrid.value = !widget.showGrid.value,
+                    //   tooltip: 'Guide Lines',
+                    // ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -277,24 +277,21 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
                       child: const Text('Clear'),
                       onPressed: () => undoRedoStack.clear(),
                     ),
-                    TextButton(
-                      onPressed: () async {
-                        if (widget.backgroundImage.value != null) {
-                          widget.backgroundImage.value = null;
-                        } else {
-                          widget.backgroundImage.value = await _getImage;
-                        }
-                      },
-                      child: Text(
-                        widget.backgroundImage.value == null
-                            ? 'Add Background'
-                            : 'Remove Background',
-                      ),
-                    ),
-                    TextButton(
-                      child: const Text('Fork on Github'),
-                      onPressed: () => _launchUrl(kGithubRepo),
-                    ),
+                    // TextButton(
+                    //   onPressed: () async {
+                    //     if (widget.backgroundImage.value != null) {
+                    //       widget.backgroundImage.value = null;
+                    //     } else {
+                    //       widget.backgroundImage.value = await _getImage;
+                    //     }
+                    //   },
+                    //   child: Text(
+                    //     widget.backgroundImage.value == null
+                    //         ? 'Add Background'
+                    //         : 'Remove Background',
+                    //   ),
+                    // ),
+                  
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -326,17 +323,6 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
                       ),
                     ),
                   ],
-                ),
-                // add about me button or follow buttons
-                const Divider(),
-                Center(
-                  child: GestureDetector(
-                    onTap: () => _launchUrl('https://github.com/JideGuru'),
-                    child: const Text(
-                      'Made with 💙 by JideGuru',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
                 ),
               ],
             ),

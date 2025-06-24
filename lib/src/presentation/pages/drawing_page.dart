@@ -17,8 +17,9 @@ class _DrawingPageState extends State<DrawingPage>
   final ValueNotifier<Color> selectedColor = ValueNotifier(Colors.black);
   final ValueNotifier<double> strokeSize = ValueNotifier(10.0);
   final ValueNotifier<double> eraserSize = ValueNotifier(30.0);
-  final ValueNotifier<DrawingTool> drawingTool =
-      ValueNotifier(DrawingTool.pencil);
+  final ValueNotifier<DrawingTool> drawingTool = ValueNotifier(
+    DrawingTool.pencil,
+  );
   final GlobalKey canvasGlobalKey = GlobalKey();
   final ValueNotifier<bool> filled = ValueNotifier(false);
   final ValueNotifier<int> polygonSides = ValueNotifier(3);
@@ -49,64 +50,67 @@ class _DrawingPageState extends State<DrawingPage>
       body: HotkeyListener(
         onRedo: undoRedoStack.redo,
         onUndo: undoRedoStack.undo,
-        child: Stack(
-          children: [
-            AnimatedBuilder(
-              animation: Listenable.merge([
-                currentStroke,
-                allStrokes,
-                selectedColor,
-                strokeSize,
-                eraserSize,
-                drawingTool,
-                filled,
-                polygonSides,
-                backgroundImage,
-                showGrid,
-              ]),
-              builder: (context, _) {
-                return DrawingCanvas(
-                  options: DrawingCanvasOptions(
-                    currentTool: drawingTool.value,
-                    size: strokeSize.value,
-                    strokeColor: selectedColor.value,
-                    backgroundColor: kCanvasColor,
-                    polygonSides: polygonSides.value,
-                    showGrid: showGrid.value,
-                    fillShape: filled.value,
+        child: Padding(
+          padding: EdgeInsets.only(top: 40),
+          child: Stack(
+            children: [
+              AnimatedBuilder(
+                animation: Listenable.merge([
+                  currentStroke,
+                  allStrokes,
+                  selectedColor,
+                  strokeSize,
+                  eraserSize,
+                  drawingTool,
+                  filled,
+                  polygonSides,
+                  backgroundImage,
+                  showGrid,
+                ]),
+                builder: (context, _) {
+                  return DrawingCanvas(
+                    options: DrawingCanvasOptions(
+                      currentTool: drawingTool.value,
+                      size: strokeSize.value,
+                      strokeColor: selectedColor.value,
+                      backgroundColor: kCanvasColor,
+                      polygonSides: polygonSides.value,
+                      showGrid: showGrid.value,
+                      fillShape: filled.value,
+                    ),
+                    canvasKey: canvasGlobalKey,
+                    currentStrokeListenable: currentStroke,
+                    strokesListenable: allStrokes,
+                    backgroundImageListenable: backgroundImage,
+                  );
+                },
+              ),
+              Positioned(
+                top: kToolbarHeight + 10,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(-1, 0),
+                    end: Offset.zero,
+                  ).animate(animationController),
+                  child: CanvasSideBar(
+                    drawingTool: drawingTool,
+                    selectedColor: selectedColor,
+                    strokeSize: strokeSize,
+                    eraserSize: eraserSize,
+                    currentSketch: currentStroke,
+                    allSketches: allStrokes,
+                    canvasGlobalKey: canvasGlobalKey,
+                    filled: filled,
+                    polygonSides: polygonSides,
+                    backgroundImage: backgroundImage,
+                    undoRedoStack: undoRedoStack,
+                    showGrid: showGrid,
                   ),
-                  canvasKey: canvasGlobalKey,
-                  currentStrokeListenable: currentStroke,
-                  strokesListenable: allStrokes,
-                  backgroundImageListenable: backgroundImage,
-                );
-              },
-            ),
-            Positioned(
-              top: kToolbarHeight + 10,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(-1, 0),
-                  end: Offset.zero,
-                ).animate(animationController),
-                child: CanvasSideBar(
-                  drawingTool: drawingTool,
-                  selectedColor: selectedColor,
-                  strokeSize: strokeSize,
-                  eraserSize: eraserSize,
-                  currentSketch: currentStroke,
-                  allSketches: allStrokes,
-                  canvasGlobalKey: canvasGlobalKey,
-                  filled: filled,
-                  polygonSides: polygonSides,
-                  backgroundImage: backgroundImage,
-                  undoRedoStack: undoRedoStack,
-                  showGrid: showGrid,
                 ),
               ),
-            ),
-            _CustomAppBar(animationController: animationController),
-          ],
+              _CustomAppBar(animationController: animationController),
+            ],
+          ),
         ),
       ),
     );
@@ -117,7 +121,7 @@ class _CustomAppBar extends StatelessWidget {
   final AnimationController animationController;
 
   const _CustomAppBar({Key? key, required this.animationController})
-      : super(key: key);
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -141,10 +145,7 @@ class _CustomAppBar extends StatelessWidget {
             ),
             const Text(
               'Let\'s Draw',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 19,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
             ),
             const SizedBox.shrink(),
           ],

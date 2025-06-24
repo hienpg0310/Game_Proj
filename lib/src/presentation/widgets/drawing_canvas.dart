@@ -46,8 +46,11 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
     final box = context.findRenderObject() as RenderBox?;
     if (box == null) return;
     final offset = box.globalToLocal(event.position);
-    // convert the offset to standard size so that it
-    // can be scaled back to the device size
+
+
+    // GIỚI HẠN VÙNG VẼ: VD dưới AppBar và bên phải Sidebar
+    if (offset.dy < kToolbarHeight || offset.dx < 80) return;
+
     final standardOffset = offset.scaleToStandard(box.size);
     _currentStroke.startStroke(
       standardOffset,
@@ -67,6 +70,9 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
     final offset = box.globalToLocal(event.position);
     // convert the offset to standard size so that it
     // can be scaled back to the device size
+
+    // GIỚI HẠN VÙNG VẼ
+    if (offset.dy < kToolbarHeight || offset.dx < 80) return;
     final standardOffset = offset.scaleToStandard(box.size);
     _currentStroke.addPoint(standardOffset);
     widget.onDrawingStrokeChanged?.call(_currentStroke.value);
@@ -103,7 +109,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
                 ),
               ),
             ),
-
+    
             // Draw the current stroke on top of the rest of the strokes.
             Positioned.fill(
               child: RepaintBoundary(
