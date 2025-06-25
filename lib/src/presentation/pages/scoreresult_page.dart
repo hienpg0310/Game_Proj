@@ -1,4 +1,3 @@
-
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -166,7 +165,7 @@ class _ScoreResultPageState extends State<ScoreResultPage>
         child: Stack(
           children: [
             // Confetti
-            ..._confettiPieces,
+            // ..._confettiPieces,
 
             // Main content
             SafeArea(
@@ -185,179 +184,134 @@ class _ScoreResultPageState extends State<ScoreResultPage>
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Stars decoration
-                            AnimatedBuilder(
-                              animation: _rotationAnimation,
-                              builder: (context, child) {
-                                return Transform.rotate(
-                                  angle: _rotationAnimation.value,
+                            Stack(
+                              children: [
+                                Center(
+                                  child: Image.asset(
+                                    "assets/congrat_img.png",
+                                    width: 360,
+                                    // height: 500,
+                                  ),
+                                ),
+                                // Add 5 star animation
+                                // ⭐️ Circle-of-Stars animation
+                                // place immediately after the congrat image inside the same Stack
+                                // Positioned(
+                                //    top: 340,
+                                //   left: 0,
+                                //   right: 0,
+                                //   child: 
+                                // ),
+
+                                Positioned(
+                                  top: 410,
+                                  left: 0,
+                                  right: 0,
                                   child: Container(
-                                    width: 100,
-                                    height: 100,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white.withOpacity(0.1),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 10,
                                     ),
-                                    child: const Center(
-                                      child: Text(
-                                        '✨⭐✨',
-                                        style: TextStyle(fontSize: 30),
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                    ),
+                                    child: Text(
+                                      _getEncouragement(),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF667eea),
                                       ),
                                     ),
                                   ),
-                                );
-                              },
-                            ),
-
-                            const SizedBox(height: 30),
-
-                            // Score display
-                            Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(30),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    _getEmoji(),
-                                    style: const TextStyle(fontSize: 60),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  const Text(
-                                    'Điểm số của bạn',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    '${_scoreCountAnimation.value}',
-                                    style: const TextStyle(
-                                      fontSize: 80,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF667eea),
-                                    ),
-                                  ),
-                                  const Text(
-                                    '/ 100',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 30),
-
-                            // Encouragement message
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 15,
-                              ),
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                _getEncouragement(),
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF667eea),
                                 ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 40),
-
-                            // Buttons
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                // Try again button
-                                ElevatedButton(
-                                  onPressed: () {
-                                    HapticFeedback.lightImpact();
-                                    Get.back();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: const Color(0xFF667eea),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 30,
-                                      vertical: 15,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    elevation: 5,
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
+                                // Buttons
+                                Positioned(
+                                   top: 540,
+                                   left: 0,
+                                    right: 0,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
                                     children: [
-                                      Icon(Icons.refresh),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Vẽ lại',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                                      // Try again button
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          HapticFeedback.lightImpact();
+                                          Get.back();
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor: const Color(
+                                            0xFF667eea,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 30,
+                                            vertical: 15,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              25,
+                                            ),
+                                          ),
+                                          elevation: 5,
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.refresh),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              'Vẽ lại',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-
-                                // New drawing button
-                                ElevatedButton(
-                                  onPressed: () {
-                                    HapticFeedback.lightImpact();
-                                    Get.back();
-                                    Get.back(); // Go back to category page
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFFFD93D),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 30,
-                                      vertical: 15,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    elevation: 5,
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        '🎨',
-                                        style: TextStyle(fontSize: 16),
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Vẽ mới',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                                  
+                                      // New drawing button
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          HapticFeedback.lightImpact();
+                                          Get.back();
+                                          Get.back(); // Go back to category page
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(
+                                            0xFFFFD93D,
+                                          ),
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 30,
+                                            vertical: 15,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              25,
+                                            ),
+                                          ),
+                                          elevation: 5,
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              '🎨',
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              'Vẽ mới',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],

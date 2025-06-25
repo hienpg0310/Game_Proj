@@ -1,5 +1,7 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:drawing_board/src/presentation/pages/scoreresult_page.dart';
 import 'package:flutter/material.dart';
 import 'package:drawing_board/src/src.dart';
 import 'package:flutter/services.dart';
@@ -42,6 +44,17 @@ class _DrawingPageState extends State<DrawingPage>
     undoRedoStack = UndoRedoStack(
       currentStrokeNotifier: currentStroke,
       strokesNotifier: allStrokes,
+    );
+  }
+
+  void _showScoreDialog() {
+    // Tạo điểm số ngẫu nhiên từ 70-100 để khuyến khích trẻ
+    final score = 70 + math.Random().nextInt(31);
+
+    Get.to(
+      () => ScoreResultPage(score: score),
+      transition: Transition.zoom,
+      duration: const Duration(milliseconds: 500),
     );
   }
 
@@ -126,6 +139,8 @@ class _DrawingPageState extends State<DrawingPage>
                     ),
                   ),
                 ),
+
+                _ScoreButton(onScore: _showScoreDialog),
               ],
             ),
           ),
@@ -219,6 +234,129 @@ class _CustomAppBar extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScoreButton extends StatefulWidget {
+  final VoidCallback onScore;
+
+  const _ScoreButton({Key? key, required this.onScore}) : super(key: key);
+
+  @override
+  State<_ScoreButton> createState() => _ScoreButtonState();
+}
+
+class _ScoreButtonState extends State<_ScoreButton>
+    with TickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late AnimationController _bounceController;
+  late Animation<double> _pulseAnimation;
+  late Animation<double> _bounceAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _bounceAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    _bounceController.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() async {
+    HapticFeedback.heavyImpact();
+    await _bounceController.forward();
+    await _bounceController.reverse();
+    widget.onScore();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    return Positioned(
+      bottom: isLandscape ? 20 : 30,
+      left: 0,
+      right:  isLandscape ? 40 : 0,
+      child: Align(
+         alignment:
+            isLandscape
+                ? Alignment
+                    .bottomRight
+                : Alignment.bottomCenter,
+        child: AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _pulseAnimation.value,
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.heavyImpact();
+                  widget.onScore();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFF6B6B), Color(0xFFFFD93D)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF6B6B).withOpacity(0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('⭐', style: TextStyle(fontSize: 16)),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'Chấm điểm',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
