@@ -1,4 +1,5 @@
 import 'package:drawing_board/src/lets_draw_app.dart';
+import 'package:drawing_board/src/presentation/pages/category_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Chọn Chủ Đề',
       debugShowCheckedModeBanner: false,
-      home: const LetsDrawApp(),
+      home: const CategoryPage(),
     );
   }
 }

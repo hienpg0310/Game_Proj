@@ -176,6 +176,12 @@
       "languageVersion": "2.15"
     },
     {
+      "name": "haptic_feedback",
+      "rootUri": "file:///Users/giahien/.pub-cache/hosted/pub.dev/haptic_feedback-0.5.1+1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "html",
       "rootUri": "file:///Users/giahien/.pub-cache/hosted/pub.dev/html-0.15.6",
       "packageUri": "lib/",
@@ -530,7 +536,7 @@
       "languageVersion": "3.7"
     }
   ],
-  "generated": "2025-06-25T02:31:44.824125Z",
+  "generated": "2025-06-25T03:42:27.067808Z",
   "generator": "pub",
   "generatorVersion": "3.7.0",
   "flutterRoot": "file:///Users/giahien/Documents/Flutter/flutter",

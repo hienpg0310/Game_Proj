@@ -65,14 +65,14 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
-      width: isLandscape ? screenWidth : 300,
+      width: isLandscape ? screenWidth : 305,
       height: isLandscape ? 200 : (screenHeight < 680 ? 450 : 630),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius:
             isLandscape
                 ? const BorderRadius.vertical(top: Radius.circular(10))
-                : const BorderRadius.horizontal(right: Radius.circular(10)),
+                : const BorderRadius.horizontal(left: Radius.circular(10)),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.shade200,
@@ -117,25 +117,25 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
             onPressed: widget.onClose,
           ),
         ),
-        const Text('Shapes', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Công cụ', style: TextStyle(fontWeight: FontWeight.bold)),
         const Divider(),
         _buildShapeTools(),
         const SizedBox(height: 8),
         _buildPolygonSlider(),
         const SizedBox(height: 10),
-        const Text('Colors', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Màu sắc', style: TextStyle(fontWeight: FontWeight.bold)),
         const Divider(),
         ColorPalette(selectedColorListenable: widget.selectedColor),
         const SizedBox(height: 20),
-        const Text('Size', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Kích thước', style: TextStyle(fontWeight: FontWeight.bold)),
         const Divider(),
         _buildSizeSliders(),
         const SizedBox(height: 20),
-        const Text('Actions', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Thao tác', style: TextStyle(fontWeight: FontWeight.bold)),
         const Divider(),
         _buildActionButtons(),
         const SizedBox(height: 20),
-        const Text('Export', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Xuất ảnh', style: TextStyle(fontWeight: FontWeight.bold)),
         const Divider(),
         _buildExportButtons(),
       ],
@@ -148,161 +148,186 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
       child: Stack(
-        children: [Padding(
-          padding: const EdgeInsets.only(top: 50.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Shapes',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                  const SizedBox(height: 4),
-                  _buildShapeTools(),
-                ],
-              ),
-              const SizedBox(width: 16),
-          
-              // Colors Section (Compact)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Colors',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                  const SizedBox(height: 4),
-                  SizedBox(
-                    width: 200,
-                    height: 60,
-                    child: ColorPalette(
-                      selectedColorListenable: widget.selectedColor,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 50.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Công cụ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 16),
-          
-              // Size Controls (Compact)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Size',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                  const SizedBox(height: 4),
-                  SizedBox(
-                    width: 150,
-                    child: Column(
+                    const SizedBox(height: 4),
+                    _buildShapeTools(),
+                  ],
+                ),
+                const SizedBox(width: 16),
+
+                // Colors Section (Compact)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Màu sắc',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: 200,
+                      height: 60,
+                      child: ColorPalette(
+                        selectedColorListenable: widget.selectedColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+
+                // Size Controls (Compact)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Kích thước',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: 150,
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const Text(
+                                'Độ dày nét vẽ:',
+                                style: TextStyle(fontSize: 10),
+                              ),
+                              Expanded(
+                                child: Slider(
+                                  value: widget.strokeSize.value,
+                                  min: 0,
+                                  max: 40,
+                                  onChanged: (val) {
+                                    widget.strokeSize.value = val;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              const Text(
+                                'Kích thước tẩy:',
+                                style: TextStyle(fontSize: 10),
+                              ),
+                              Expanded(
+                                child: Slider(
+                                  value: widget.eraserSize.value,
+                                  min: 0,
+                                  max: 60,
+                                  onChanged: (val) {
+                                    widget.eraserSize.value = val;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+
+                // Actions Section
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Actions',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            const Text('Stroke:', style: TextStyle(fontSize: 10)),
-                            Expanded(
-                              child: Slider(
-                                value: widget.strokeSize.value,
-                                min: 0,
-                                max: 50,
-                                onChanged: (val) {
-                                  widget.strokeSize.value = val;
-                                },
-                              ),
-                            ),
-                          ],
+                        _buildCompactButton(
+                          'Hoàn tác',
+                          widget.allSketches.value.isNotEmpty
+                              ? () => undoRedoStack.undo()
+                              : null,
                         ),
-                        Row(
-                          children: [
-                            const Text('Eraser:', style: TextStyle(fontSize: 10)),
-                            Expanded(
-                              child: Slider(
-                                value: widget.eraserSize.value,
-                                min: 0,
-                                max: 80,
-                                onChanged: (val) {
-                                  widget.eraserSize.value = val;
-                                },
-                              ),
-                            ),
-                          ],
+                        const SizedBox(width: 4),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: undoRedoStack.canRedo,
+                          builder: (_, canRedo, __) {
+                            return _buildCompactButton(
+                              'Làm lại',
+                              canRedo ? () => undoRedoStack.redo() : null,
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 4),
+                        _buildCompactButton(
+                          'Xóa',
+                          () => undoRedoStack.clear(),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 16),
-          
-              // Actions Section
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Actions',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      _buildCompactButton(
-                        'Undo',
-                        widget.allSketches.value.isNotEmpty
-                            ? () => undoRedoStack.undo()
-                            : null,
+                  ],
+                ),
+                const SizedBox(width: 16),
+                // Export Section
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Xuất ảnh',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
                       ),
-                      const SizedBox(width: 4),
-                      ValueListenableBuilder<bool>(
-                        valueListenable: undoRedoStack.canRedo,
-                        builder: (_, canRedo, __) {
-                          return _buildCompactButton(
-                            'Redo',
-                            canRedo ? () => undoRedoStack.redo() : null,
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 4),
-                      _buildCompactButton('Clear', () => undoRedoStack.clear()),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(width: 16),
-              // Export Section
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Export',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      _buildCompactButton('PNG', () async {
-                        Uint8List? pngBytes = await getBytes();
-                        if (pngBytes != null) saveFile(pngBytes, 'png');
-                      }),
-                      const SizedBox(width: 4),
-                      _buildCompactButton('JPEG', () async {
-                        Uint8List? pngBytes = await getBytes();
-                        if (pngBytes != null) saveFile(pngBytes, 'jpeg');
-                      }),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        _buildCompactButton('PNG', () async {
+                          Uint8List? pngBytes = await getBytes();
+                          if (pngBytes != null) saveFile(pngBytes, 'png');
+                        }),
+                        const SizedBox(width: 4),
+                        _buildCompactButton('JPEG', () async {
+                          Uint8List? pngBytes = await getBytes();
+                          if (pngBytes != null) saveFile(pngBytes, 'jpeg');
+                        }),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        Positioned(
+          Positioned(
             top: 0,
             right: 0,
             child: IconButton(
@@ -310,7 +335,7 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
               onPressed: widget.onClose,
             ),
           ),
-        ]
+        ],
       ),
     );
   }
@@ -340,12 +365,12 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
           iconData: FontAwesomeIcons.pencil,
           selected: widget.drawingTool.value == DrawingTool.pencil,
           onTap: () => widget.drawingTool.value = DrawingTool.pencil,
-          tooltip: 'Pencil',
+          tooltip: 'Bút',
         ),
         _IconBox(
           selected: widget.drawingTool.value == DrawingTool.line,
           onTap: () => widget.drawingTool.value = DrawingTool.line,
-          tooltip: 'Line',
+          tooltip: 'Đường',
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -364,7 +389,7 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
           iconData: FontAwesomeIcons.eraser,
           selected: widget.drawingTool.value == DrawingTool.eraser,
           onTap: () => widget.drawingTool.value = DrawingTool.eraser,
-          tooltip: 'Eraser',
+          tooltip: 'Tẩy',
         ),
       ],
     );
@@ -399,11 +424,11 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
       children: [
         Row(
           children: [
-            const Text('Stroke Size: ', style: TextStyle(fontSize: 12)),
+            const Text('Độ dày nét vẽ: ', style: TextStyle(fontSize: 12)),
             Slider(
               value: widget.strokeSize.value,
               min: 0,
-              max: 50,
+              max: 40,
               onChanged: (val) {
                 widget.strokeSize.value = val;
               },
@@ -412,11 +437,11 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
         ),
         Row(
           children: [
-            const Text('Eraser Size: ', style: TextStyle(fontSize: 12)),
+            const Text('Kích thước tẩy: ', style: TextStyle(fontSize: 12)),
             Slider(
               value: widget.eraserSize.value,
               min: 0,
-              max: 80,
+              max: 60,
               onChanged: (val) {
                 widget.eraserSize.value = val;
               },
@@ -435,19 +460,19 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
               widget.allSketches.value.isNotEmpty
                   ? () => undoRedoStack.undo()
                   : null,
-          child: const Text('Undo'),
+          child: const Text('Hoàn tác'),
         ),
         ValueListenableBuilder<bool>(
           valueListenable: undoRedoStack.canRedo,
           builder: (_, canRedo, __) {
             return TextButton(
               onPressed: canRedo ? () => undoRedoStack.redo() : null,
-              child: const Text('Redo'),
+              child: const Text('Làm lại'),
             );
           },
         ),
         TextButton(
-          child: const Text('Clear'),
+          child: const Text('Xóa'),
           onPressed: () => undoRedoStack.clear(),
         ),
       ],
@@ -460,7 +485,7 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
         SizedBox(
           width: 140,
           child: TextButton(
-            child: const Text('Export PNG'),
+            child: const Text('Xuất ảnh PNG'),
             onPressed: () async {
               Uint8List? pngBytes = await getBytes();
               if (pngBytes != null) saveFile(pngBytes, 'png');
@@ -470,7 +495,7 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
         SizedBox(
           width: 140,
           child: TextButton(
-            child: const Text('Export JPEG'),
+            child: const Text('Xuất ảnh JPEG'),
             onPressed: () async {
               Uint8List? pngBytes = await getBytes();
               if (pngBytes != null) saveFile(pngBytes, 'jpeg');
@@ -556,8 +581,8 @@ class _IconBox extends StatelessWidget {
     this.tooltip,
     required this.selected,
     required this.onTap,
-  })  : assert(child != null || iconData != null),
-        super(key: key);
+  }) : assert(child != null || iconData != null),
+       super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -578,7 +603,8 @@ class _IconBox extends StatelessWidget {
           child: Tooltip(
             message: tooltip,
             preferBelow: false,
-            child: child ??
+            child:
+                child ??
                 Icon(
                   iconData,
                   color: selected ? Colors.grey[900] : Colors.grey,
