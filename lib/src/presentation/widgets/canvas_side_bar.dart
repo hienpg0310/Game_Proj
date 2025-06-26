@@ -30,6 +30,7 @@ class CanvasSideBar extends StatefulWidget {
   final UndoRedoStack undoRedoStack;
   final ValueNotifier<bool> showGrid;
   final VoidCallback? onClose;
+  final VoidCallback? onClearHints;
 
   const CanvasSideBar({
     Key? key,
@@ -45,6 +46,7 @@ class CanvasSideBar extends StatefulWidget {
     required this.backgroundImage,
     required this.undoRedoStack,
     required this.showGrid,
+    this.onClearHints,
     this.onClose,
   }) : super(key: key);
 
@@ -287,10 +289,11 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
                           },
                         ),
                         const SizedBox(width: 4),
-                        _buildCompactButton(
-                          'Xóa',
-                          () => undoRedoStack.clear(),
-                        ),
+                        _buildCompactButton('Xóa', () {
+                          undoRedoStack.clear();
+                          widget.onClearHints
+                              ?.call(); // Gọi callback để reset hint
+                        }),
                       ],
                     ),
                   ],
@@ -473,7 +476,10 @@ class _CanvasSideBarState extends State<CanvasSideBar> {
         ),
         TextButton(
           child: const Text('Xóa'),
-          onPressed: () => undoRedoStack.clear(),
+          onPressed: () {
+            undoRedoStack.clear();
+            widget.onClearHints?.call();
+          },
         ),
       ],
     );

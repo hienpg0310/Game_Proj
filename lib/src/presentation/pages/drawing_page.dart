@@ -41,6 +41,7 @@ class _DrawingPageState extends State<DrawingPage>
   late final UndoRedoStack undoRedoStack;
   final ValueNotifier<bool> showGrid = ValueNotifier(false);
   final ValueNotifier<int> passedHintCount = ValueNotifier(0);
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -62,7 +63,6 @@ class _DrawingPageState extends State<DrawingPage>
     final image = await boundary.toImage(pixelRatio: 3.0);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     final pngBytes = byteData!.buffer.asUint8List();
-    final String base64Image = base64Encode(pngBytes);
     return base64Encode(pngBytes);
   }
 
@@ -90,25 +90,29 @@ class _DrawingPageState extends State<DrawingPage>
 
   void _showScoreDialog() async {
     HapticFeedback.mediumImpact();
+    setState(() => isLoading = true); // Show spinner
 
-    final base64Image = await _getImageBase64(canvasGlobalKey);
-
-    final score = await ScoringService.sendToGemini(base64Image, widget.title);
-
-    print(score);
-
-    if (score != null) {
-      Get.to(
-        () => ScoreResultPage(score: score),
-        transition: Transition.zoom,
-        duration: const Duration(milliseconds: 200),
+    try {
+      final base64Image = await _getImageBase64(canvasGlobalKey);
+      final score = await ScoringService.sendToGemini(
+        base64Image,
+        widget.title,
       );
 
-      // Get.to(Base64ImagePreview(base64String: base64Image));
-      // handleSaveBase64(base64Image);
-    } else {
-      // fallback nếu gọi API lỗi
-      Get.snackbar("Lỗi", "Không thể chấm điểm lúc này");
+      setState(() => isLoading = false);
+
+      if (score != null) {
+        Get.to(
+          () => ScoreResultPage(score: score),
+          transition: Transition.zoom,
+          duration: const Duration(milliseconds: 200),
+        );
+      } else {
+        Get.snackbar("Lỗi", "Không thể chấm điểm lúc này");
+      }
+    } catch (e) {
+      setState(() => isLoading = false);
+      Get.snackbar("Lỗi", "Đã xảy ra lỗi khi chấm điểm");
     }
   }
 
@@ -199,6 +203,10 @@ class _DrawingPageState extends State<DrawingPage>
                       undoRedoStack: undoRedoStack,
                       showGrid: showGrid,
                       onClose: () => animationController.reverse(),
+                      onClearHints: () {
+                        passedHintCount.value = 0;
+                        // canvasGlobalKey.currentState?.resetTouchedHints();
+                      },
                     ),
                   ),
                 ),
@@ -207,9 +215,23 @@ class _DrawingPageState extends State<DrawingPage>
                   valueListenable: passedHintCount,
                   builder: (context, count, _) {
                     if (count < widget.hintCount) return const SizedBox();
-                    return _ScoreButton(onScore: _showScoreDialog);
+                    return _ScoreButton(
+                      onScore: _showScoreDialog,
+                      isLoading: isLoading,
+                    );
                   },
                 ),
+
+                // Spinner overlay
+                if (isLoading)
+                  Container(
+                    color: Colors.black45,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -324,8 +346,10 @@ class _CustomAppBar extends StatelessWidget {
 
 class _ScoreButton extends StatefulWidget {
   final VoidCallback onScore;
+  final bool isLoading;
 
-  const _ScoreButton({Key? key, required this.onScore}) : super(key: key);
+  const _ScoreButton({Key? key, required this.onScore, required this.isLoading})
+    : super(key: key);
 
   @override
   State<_ScoreButton> createState() => _ScoreButtonState();
@@ -386,8 +410,10 @@ class _ScoreButtonState extends State<_ScoreButton>
               scale: _pulseAnimation.value,
               child: GestureDetector(
                 onTap: () {
-                  HapticFeedback.heavyImpact();
-                  widget.onScore();
+                  if (!widget.isLoading) {
+                    HapticFeedback.heavyImpact();
+                    widget.onScore();
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(

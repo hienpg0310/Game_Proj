@@ -115,6 +115,12 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
     widget.onDrawingStrokeChanged?.call(null);
   }
 
+  void resetTouchedHints() {
+    setState(() {
+      _touchedHints.clear();
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -128,7 +134,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
     final random = Random();
     final screenSize = MediaQuery.of(context).size;
 
-    const double marginX = 60; 
+    const double marginX = 60;
     const double marginY = 120;
 
     final double minX = marginX;
