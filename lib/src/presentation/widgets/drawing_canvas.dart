@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:drawing_board/src/src.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class DrawingCanvas extends StatefulWidget {
   final ValueNotifier<List<Stroke>> strokesListenable;
@@ -11,6 +12,8 @@ class DrawingCanvas extends StatefulWidget {
   final Function(Stroke?)? onDrawingStrokeChanged;
   final GlobalKey canvasKey;
   final ValueNotifier<ui.Image?>? backgroundImageListenable;
+  final int numberOfHintButtons;
+  final void Function()? onHintPassed;
 
   const DrawingCanvas({
     super.key,
@@ -20,6 +23,8 @@ class DrawingCanvas extends StatefulWidget {
     this.onDrawingStrokeChanged,
     required this.canvasKey,
     this.backgroundImageListenable,
+    this.numberOfHintButtons = 3,
+    this.onHintPassed,
   });
 
   @override
@@ -41,6 +46,9 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
 
   CurrentStrokeValueNotifier get _currentStroke =>
       widget.currentStrokeListenable;
+
+  List<Offset> _hintPositions = [];
+  final Set<int> _touchedHints = {};
 
   void _onPointerDown(PointerDownEvent event) {
     final box = context.findRenderObject() as RenderBox?;
@@ -69,8 +77,6 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
     final box = context.findRenderObject() as RenderBox?;
     if (box == null) return;
     final offset = box.globalToLocal(event.position);
-    // convert the offset to standard size so that it
-    // can be scaled back to the device size
 
     // GIỚI HẠN VÙNG VẼ
     if (offset.dy < 30 &&
@@ -78,6 +84,26 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
       return;
     final standardOffset = offset.scaleToStandard(box.size);
     _currentStroke.addPoint(standardOffset);
+
+    final renderBox = context.findRenderObject() as RenderBox?;
+
+    if (renderBox != null) {
+      final localOffset = renderBox.globalToLocal(event.position);
+
+      for (int i = 0; i < _hintPositions.length; i++) {
+        if (_touchedHints.contains(i)) continue;
+
+        final hint = _hintPositions[i];
+        const double hitRadius = 15.0;
+
+        if ((localOffset - hint).distance <= hitRadius) {
+          _touchedHints.add(i);
+          widget.onHintPassed?.call();
+          break;
+        }
+      }
+    }
+
     widget.onDrawingStrokeChanged?.call(_currentStroke.value);
   }
 
@@ -87,6 +113,35 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
       ..add(_currentStroke.value!);
     _currentStroke.clear();
     widget.onDrawingStrokeChanged?.call(null);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _generateRandomHintPositions();
+      setState(() {});
+    });
+  }
+
+  void _generateRandomHintPositions() {
+    final random = Random();
+    final screenSize = MediaQuery.of(context).size;
+
+    const double marginX = 60; 
+    const double marginY = 120;
+
+    final double minX = marginX;
+    final double maxX = screenSize.width - marginX;
+
+    final double minY = marginY;
+    final double maxY = screenSize.height - marginY;
+
+    _hintPositions = List.generate(widget.numberOfHintButtons, (_) {
+      final dx = minX + random.nextDouble() * (maxX - minX);
+      final dy = minY + random.nextDouble() * (maxY - minY);
+      return Offset(dx, dy);
+    });
   }
 
   @override
@@ -127,6 +182,22 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
                 ),
               ),
             ),
+
+            ..._hintPositions.asMap().entries.map((entry) {
+              final i = entry.key;
+              final pos = entry.value;
+              final touched = _touchedHints.contains(i);
+
+              return Positioned(
+                left: pos.dx,
+                top: pos.dy,
+                child: FaIcon(
+                  FontAwesomeIcons.solidCircle,
+                  color: touched ? Colors.green : Colors.amber,
+                  size: 15,
+                ),
+              );
+            }).toList(),
           ],
         ),
       ),
@@ -309,9 +380,7 @@ class _DrawingCanvasPainter extends CustomPainter {
 
     final subGridPaint =
         Paint()
-          ..color =
-              Colors
-                  .grey 
+          ..color = Colors.grey
           ..strokeWidth = subGridStrokeWidth;
 
     // Horizontal lines for main grid

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:drawing_board/src/src.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ScoreResultPage extends StatefulWidget {
   final int score;
@@ -18,16 +19,16 @@ class ScoreResultPage extends StatefulWidget {
 class _ScoreResultPageState extends State<ScoreResultPage>
     with TickerProviderStateMixin {
   late AnimationController _mainController;
-  late AnimationController _starsController;
-  late AnimationController _confettiController;
   late AnimationController _scoreController;
 
   late Animation<double> _scaleAnimation;
-  late Animation<double> _rotationAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<int> _scoreCountAnimation;
 
-  List<Widget> _confettiPieces = [];
+  final List<AnimationController> _starControllers = [];
+  final List<Animation<double>> _starAnimations = [];
+  final List<Animation<Color?>> _starColorAnimations = [];
+  final List<Animation<double>> _starRotationAnimations = [];
 
   @override
   void initState() {
@@ -35,16 +36,6 @@ class _ScoreResultPageState extends State<ScoreResultPage>
 
     _mainController = AnimationController(
       duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-
-    _starsController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    );
-
-    _confettiController = AnimationController(
-      duration: const Duration(milliseconds: 3000),
       vsync: this,
     );
 
@@ -57,10 +48,6 @@ class _ScoreResultPageState extends State<ScoreResultPage>
       CurvedAnimation(parent: _mainController, curve: Curves.elasticOut),
     );
 
-    _rotationAnimation = Tween<double>(begin: 0.0, end: 2 * math.pi).animate(
-      CurvedAnimation(parent: _starsController, curve: Curves.easeInOut),
-    );
-
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -71,50 +58,120 @@ class _ScoreResultPageState extends State<ScoreResultPage>
       end: widget.score,
     ).animate(CurvedAnimation(parent: _scoreController, curve: Curves.easeOut));
 
-    _generateConfetti();
+    // _generateConfetti();
+    _initializeStarAnimations();
     _startAnimations();
   }
 
-  void _generateConfetti() {
-    final random = math.Random();
-    _confettiPieces = List.generate(20, (index) {
-      return Positioned(
-        left: random.nextDouble() * 400,
-        top: -50,
-        child: AnimatedBuilder(
-          animation: _confettiController,
-          builder: (context, child) {
-            final progress = _confettiController.value;
-            final fallDistance = 800 * progress;
-            final rotation = progress * 4 * math.pi;
-
-            return Transform.translate(
-              offset: Offset(math.sin(progress * 6) * 50, fallDistance),
-              child: Transform.rotate(
-                angle: rotation,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color:
-                        [
-                          Colors.red,
-                          Colors.blue,
-                          Colors.green,
-                          Colors.yellow,
-                          Colors.purple,
-                          Colors.orange,
-                        ][random.nextInt(6)],
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            );
-          },
+void _initializeStarAnimations() {
+    for (int i = 0; i < 5; i++) {
+      final controller = AnimationController(
+        duration: const Duration(
+          milliseconds: 1000,
         ),
+        vsync: this,
       );
-    });
+
+      // Animation cho bounce effect
+      final scaleAnimation = Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.bounceOut));
+
+      // Animation cho màu sắc từ xám sang vàng
+      final colorAnimation = ColorTween(
+        begin: Colors.grey.withOpacity(0.3),
+        end: Colors.amber,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.bounceOut));
+
+      // Animation xoay với bounce
+      final rotationAnimation = Tween<double>(
+        begin: 0.0,
+        end: 2 * math.pi, // 360 degrees in radians
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.bounceOut));
+
+      _starControllers.add(controller);
+      _starAnimations.add(scaleAnimation);
+      _starColorAnimations.add(colorAnimation);
+      _starRotationAnimations.add(rotationAnimation);
+    }
   }
+
+  int _getStarsToShow() {
+    if (widget.score >= 9) return 3;
+    if (widget.score >= 6) return 2;
+    if (widget.score >= 2) return 1;
+    return 0;
+  }
+
+  Widget _buildStarRating() {
+    final int starsToShow = _getStarsToShow();
+    const double starSize = 70.0;
+    const int starCount = 3;
+    const double containerWidth = 300.0;
+    const double containerHeight = 80.0;
+
+    final double totalSpacing = containerWidth - (starCount * starSize) - 10;
+    final double spacing = totalSpacing / (starCount - 1);
+    final double y = (containerHeight - starSize) / 2;
+
+    return SizedBox(
+      width: containerWidth,
+      height: containerHeight,
+      child: Stack(
+        children: List.generate(starCount, (index) {
+          final double x = index * (starSize + spacing);
+          final bool shouldAnimate = index < starsToShow;
+
+          return Positioned(
+            left: x,
+            top: y,
+            child: AnimatedBuilder(
+              animation: Listenable.merge([
+                _starAnimations[index],
+                _starColorAnimations[index],
+                _starRotationAnimations[index],
+              ]),
+              builder: (context, child) {
+                Color starColor =
+                    shouldAnimate
+                        ? (_starColorAnimations[index].value ?? Colors.amber)
+                        : Colors.grey.withOpacity(0.3);
+
+                bool showShadow =
+                    shouldAnimate &&
+                    _starColorAnimations[index].value != null &&
+                    _starColorAnimations[index].value!.value >
+                        Colors.grey.withOpacity(0.5).value;
+
+                return Transform.scale(
+                  scale: _starAnimations[index].value,
+                  child: Transform.rotate(
+                    angle: _starRotationAnimations[index].value,
+                    child: FaIcon(
+                      FontAwesomeIcons.solidStar,
+                      size: starSize,
+                      color: starColor,
+                      shadows:
+                          showShadow
+                              ? [
+                                Shadow(
+                                  color: Colors.amber.withOpacity(0.6),
+                                  blurRadius: 8,
+                                ),
+                              ]
+                              : [],
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
 
   void _startAnimations() async {
     await Future.delayed(const Duration(milliseconds: 300));
@@ -123,31 +180,30 @@ class _ScoreResultPageState extends State<ScoreResultPage>
     await Future.delayed(const Duration(milliseconds: 500));
     _scoreController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 200));
-    _starsController.repeat();
-    _confettiController.forward();
+    // Bắt đầu animation cho các ngôi sao dựa trên điểm số
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    for (int i = 0; i < 3; i++) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      _starControllers[i].forward();
+    }
   }
 
   String _getEncouragement() {
-    if (widget.score >= 95) return "Tuyệt vời! Bạn là nghệ sĩ thực thụ! 🎨";
-    if (widget.score >= 85) return "Xuất sắc! Tranh vẽ rất đẹp! 🌟";
-    if (widget.score >= 75) return "Tốt lắm! Bạn vẽ rất hay! 👏";
-    return "Hay quá! Tiếp tục cố gắng nhé! 💪";
-  }
-
-  String _getEmoji() {
-    if (widget.score >= 95) return "🏆";
-    if (widget.score >= 85) return "🎖️";
-    if (widget.score >= 75) return "🥉";
-    return "🎯";
+    if (widget.score >= 9) return "Tuyệt vời! Bạn là nghệ sĩ thực thụ! 🎨";
+    if (widget.score >= 6) return "Xuất sắc! Tranh vẽ rất đẹp! 🌟";
+    if (widget.score >= 2) return "Bạn vẽ rất tốt! Cố gắng để vẽ đẹp hơn nữa nhé! 👏";
+    return "Đẹp quá! Tiếp tục cố gắng nhé! 💪";
   }
 
   @override
   void dispose() {
     _mainController.dispose();
-    _starsController.dispose();
-    _confettiController.dispose();
     _scoreController.dispose();
+    // Dispose star controllers
+    for (final controller in _starControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -163,10 +219,8 @@ class _ScoreResultPageState extends State<ScoreResultPage>
           ),
         ),
         child: Stack(
+          // clipBehavior: Clip.none,
           children: [
-            // Confetti
-            // ..._confettiPieces,
-
             // Main content
             SafeArea(
               child: Center(
@@ -190,18 +244,16 @@ class _ScoreResultPageState extends State<ScoreResultPage>
                                   child: Image.asset(
                                     "assets/congrat_img.png",
                                     width: 360,
-                                    // height: 500,
+
                                   ),
                                 ),
-                                // Add 5 star animation
-                                // ⭐️ Circle-of-Stars animation
-                                // place immediately after the congrat image inside the same Stack
-                                // Positioned(
-                                //    top: 340,
-                                //   left: 0,
-                                //   right: 0,
-                                //   child: 
-                                // ),
+                                // 5 Star Rating with Arc Layout
+                                Positioned(
+                                  top: 300,
+                                  left: 0,
+                                  right: 0,
+                                  child: Center(child: _buildStarRating()),
+                                ),
 
                                 Positioned(
                                   top: 410,
@@ -228,9 +280,9 @@ class _ScoreResultPageState extends State<ScoreResultPage>
                                 ),
                                 // Buttons
                                 Positioned(
-                                   top: 540,
-                                   left: 0,
-                                    right: 0,
+                                  top: 540,
+                                  left: 0,
+                                  right: 0,
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
@@ -272,7 +324,7 @@ class _ScoreResultPageState extends State<ScoreResultPage>
                                           ],
                                         ),
                                       ),
-                                  
+
                                       // New drawing button
                                       ElevatedButton(
                                         onPressed: () {

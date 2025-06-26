@@ -1,4 +1,4 @@
-import 'package:drawing_board/src/presentation/pages/drawing_page.dart';
+import 'package:drawing_board/src/presentation/presentation.dart';
 import 'package:drawing_board/src/presentation/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +10,7 @@ class LetsDrawApp extends StatelessWidget {
     return MaterialApp(
       // title: "Let/'s Draw",
       theme: lightTheme,
-      home: const DrawingPage(),
+      home: const CategoryPage(),
       debugShowCheckedModeBanner: false,
     );
   }

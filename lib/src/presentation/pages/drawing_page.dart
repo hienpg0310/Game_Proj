@@ -1,14 +1,22 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:drawing_board/src/presentation/pages/scoreresult_page.dart';
+import 'package:drawing_board/src/service/scoring_service.dart';
 import 'package:flutter/material.dart';
 import 'package:drawing_board/src/src.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DrawingPage extends StatefulWidget {
-  const DrawingPage({super.key});
+  final int hintCount;
+  final String title;
+
+  const DrawingPage({super.key, required this.hintCount, required this.title});
 
   @override
   State<DrawingPage> createState() => _DrawingPageState();
@@ -32,6 +40,7 @@ class _DrawingPageState extends State<DrawingPage>
   final ValueNotifier<List<Stroke>> allStrokes = ValueNotifier([]);
   late final UndoRedoStack undoRedoStack;
   final ValueNotifier<bool> showGrid = ValueNotifier(false);
+  final ValueNotifier<int> passedHintCount = ValueNotifier(0);
 
   @override
   void initState() {
@@ -47,15 +56,60 @@ class _DrawingPageState extends State<DrawingPage>
     );
   }
 
-  void _showScoreDialog() {
-    // Tạo điểm số ngẫu nhiên từ 70-100 để khuyến khích trẻ
-    final score = 70 + math.Random().nextInt(31);
+  Future<String> _getImageBase64(GlobalKey canvasKey) async {
+    final boundary =
+        canvasKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    final image = await boundary.toImage(pixelRatio: 3.0);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final pngBytes = byteData!.buffer.asUint8List();
+    final String base64Image = base64Encode(pngBytes);
+    return base64Encode(pngBytes);
+  }
 
-    Get.to(
-      () => ScoreResultPage(score: score),
-      transition: Transition.zoom,
-      duration: const Duration(milliseconds: 500),
-    );
+  Future<File> saveBase64ToFile(String base64String, String fileName) async {
+    // Loại bỏ header nếu có
+    final cleanBase64 = base64String.split(',').last;
+
+    // Giải mã base64
+    final bytes = base64Decode(cleanBase64);
+
+    // Lấy thư mục tạm thời
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/$fileName');
+
+    // Ghi dữ liệu vào file
+    await file.writeAsBytes(bytes);
+
+    return file;
+  }
+
+  void handleSaveBase64(String base64Image) async {
+    final file = await saveBase64ToFile(base64Image, 'drawing.png');
+    print('Đã lưu file tại: ${file.path}');
+  }
+
+  void _showScoreDialog() async {
+    HapticFeedback.mediumImpact();
+
+    final base64Image = await _getImageBase64(canvasGlobalKey);
+
+    final score = await ScoringService.sendToGemini(base64Image, widget.title);
+
+    print(score);
+
+    if (score != null) {
+      Get.to(
+        () => ScoreResultPage(score: score),
+        transition: Transition.zoom,
+        duration: const Duration(milliseconds: 200),
+      );
+
+      // Get.to(Base64ImagePreview(base64String: base64Image));
+      // handleSaveBase64(base64Image);
+    } else {
+      // fallback nếu gọi API lỗi
+      Get.snackbar("Lỗi", "Không thể chấm điểm lúc này");
+    }
   }
 
   @override
@@ -98,14 +152,23 @@ class _DrawingPageState extends State<DrawingPage>
                         showGrid: showGrid.value,
                         fillShape: filled.value,
                       ),
+                      numberOfHintButtons: widget.hintCount,
                       canvasKey: canvasGlobalKey,
                       currentStrokeListenable: currentStroke,
                       strokesListenable: allStrokes,
                       backgroundImageListenable: backgroundImage,
+                      onHintPassed: () {
+                        if (passedHintCount.value < widget.hintCount) {
+                          passedHintCount.value += 1;
+                        }
+                      },
                     );
                   },
                 ),
-                _CustomAppBar(animationController: animationController),
+                _CustomAppBar(
+                  animationController: animationController,
+                  title: widget.title,
+                ),
                 Positioned(
                   bottom: isLandscape ? 0 : null,
                   top: isLandscape ? null : kToolbarHeight,
@@ -140,7 +203,13 @@ class _DrawingPageState extends State<DrawingPage>
                   ),
                 ),
 
-                _ScoreButton(onScore: _showScoreDialog),
+                ValueListenableBuilder<int>(
+                  valueListenable: passedHintCount,
+                  builder: (context, count, _) {
+                    if (count < widget.hintCount) return const SizedBox();
+                    return _ScoreButton(onScore: _showScoreDialog);
+                  },
+                ),
               ],
             ),
           ),
@@ -152,9 +221,13 @@ class _DrawingPageState extends State<DrawingPage>
 
 class _CustomAppBar extends StatelessWidget {
   final AnimationController animationController;
+  final String title;
 
-  const _CustomAppBar({Key? key, required this.animationController})
-    : super(key: key);
+  const _CustomAppBar({
+    Key? key,
+    required this.animationController,
+    required this.title,
+  }) : super(key: key);
 
   void _handleBackPress() {
     // Add haptic feedback for better UX
@@ -200,6 +273,15 @@ class _CustomAppBar extends StatelessWidget {
                     color: Colors.black87,
                   ),
                 ),
+              ),
+            ),
+
+            Text(
+              "Vẽ chú ${title.toLowerCase()}",
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
             ),
 
@@ -286,13 +368,6 @@ class _ScoreButtonState extends State<_ScoreButton>
     super.dispose();
   }
 
-  void _handleTap() async {
-    HapticFeedback.heavyImpact();
-    await _bounceController.forward();
-    await _bounceController.reverse();
-    widget.onScore();
-  }
-
   @override
   Widget build(BuildContext context) {
     final isLandscape =
@@ -301,13 +376,9 @@ class _ScoreButtonState extends State<_ScoreButton>
     return Positioned(
       bottom: isLandscape ? 20 : 30,
       left: 0,
-      right:  isLandscape ? 40 : 0,
+      right: isLandscape ? 40 : 0,
       child: Align(
-         alignment:
-            isLandscape
-                ? Alignment
-                    .bottomRight
-                : Alignment.bottomCenter,
+        alignment: isLandscape ? Alignment.bottomRight : Alignment.bottomCenter,
         child: AnimatedBuilder(
           animation: _pulseAnimation,
           builder: (context, child) {
@@ -359,6 +430,22 @@ class _ScoreButtonState extends State<_ScoreButton>
           },
         ),
       ),
+    );
+  }
+}
+
+class Base64ImagePreview extends StatelessWidget {
+  final String base64String;
+
+  const Base64ImagePreview({super.key, required this.base64String});
+
+  @override
+  Widget build(BuildContext context) {
+    final Uint8List imageBytes = base64Decode(base64String);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Preview Image')),
+      body: Center(child: Image.memory(imageBytes, fit: BoxFit.contain)),
     );
   }
 }

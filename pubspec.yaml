@@ -45,6 +45,9 @@ dependencies:
   universal_platform: ^1.1.0
   get: ^4.7.2
   haptic_feedback: ^0.5.1+1
+  http: ^1.4.0
+  dio: ^5.8.0+1
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:

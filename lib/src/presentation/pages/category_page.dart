@@ -46,6 +46,8 @@ class _CategoryPageState extends State<CategoryPage>
     },
   ];
 
+  int selectedCount = 3;
+
   @override
   void initState() {
     super.initState();
@@ -154,7 +156,7 @@ class _CategoryPageState extends State<CategoryPage>
 
   @override
   Widget build(BuildContext context) {
-      final isLandscape =
+    final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
@@ -221,7 +223,6 @@ class _CategoryPageState extends State<CategoryPage>
                 ),
               ),
 
-              // Categories Grid
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -234,7 +235,7 @@ class _CategoryPageState extends State<CategoryPage>
                           physics: const BouncingScrollPhysics(),
                           itemCount: categories.length,
                           gridDelegate:
-                               SliverGridDelegateWithFixedCrossAxisCount(
+                              SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: isLandscape ? 4 : 2,
                                 crossAxisSpacing: 20,
                                 mainAxisSpacing: 20,
@@ -254,10 +255,9 @@ class _CategoryPageState extends State<CategoryPage>
                                 description: category['description']!,
                                 delay: index * 100,
                                 onTap: () {
-                                  // Add haptic feedback
                                   HapticFeedback.lightImpact();
                                   Get.to(
-                                    () => DrawingPage(),
+                                    () => DrawingPage(hintCount: selectedCount, title: category['title']!,),
                                     transition: Transition.rightToLeftWithFade,
                                     duration: const Duration(milliseconds: 300),
                                   );
@@ -274,6 +274,60 @@ class _CategoryPageState extends State<CategoryPage>
 
               // Bottom padding
               const SizedBox(height: 20),
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Chọn số điểm gợi ý:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          '$selectedCount',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      showValueIndicator: ShowValueIndicator.always,
+                      valueIndicatorTextStyle: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    child: Slider(
+                      value: selectedCount.toDouble(),
+                      min: 3,
+                      max: 10,
+                      divisions: 7,
+                      label: "$selectedCount",
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCount = value.toInt();
+                        });
+                      },
+                      activeColor: Colors.white,
+                      inactiveColor: Colors.white38,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
             ],
           ),
         ),
@@ -349,7 +403,7 @@ class _CategoryCardState extends State<CategoryCard>
 
   @override
   Widget build(BuildContext context) {
-      final isLandscape =
+    final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
     return AnimatedBuilder(
@@ -403,7 +457,7 @@ class _CategoryCardState extends State<CategoryCard>
                       child: Image.asset(
                         widget.emoji,
                         // style: const TextStyle(fontSize: 50),
-                        width: isLandscape ? 70: 70,
+                        width: isLandscape ? 70 : 70,
                         height: isLandscape ? 70 : 70,
                       ),
                     ),
@@ -413,7 +467,7 @@ class _CategoryCardState extends State<CategoryCard>
                     // Title
                     Text(
                       widget.title,
-                      style:  TextStyle(
+                      style: TextStyle(
                         fontSize: isLandscape ? 16 : 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -426,7 +480,7 @@ class _CategoryCardState extends State<CategoryCard>
                     Text(
                       widget.description,
                       style: TextStyle(
-                        fontSize: isLandscape ? 12 :14,
+                        fontSize: isLandscape ? 12 : 14,
                         color: Colors.white.withOpacity(0.8),
                         fontWeight: FontWeight.w500,
                       ),
